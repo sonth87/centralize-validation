@@ -1,0 +1,32 @@
+<html>
+	<head>
+		<script type="text/javascript" async="" src="script.js"></script>
+	</head>
+	<body>
+
+		<div>
+			<input type="text" id="phone" placeholder="phone" />
+			<span id="phone_error"></span>
+		</div>
+		<br />
+		<div>
+			<input type="text" id="email" placeholder="email" />
+			<span id="email_error"></span>
+		</div>
+
+		<script>
+			var phone = document.getElementById("phone");
+			var email = document.getElementById("email");
+
+			// phone.addEventListener("keyup", function(e) {
+			// 	if(!_.isPhoneNumber(e.target.value)) document.getElementById("phone_error").innerHTML = "Sai định dạng phone";
+			// 	else document.getElementById("phone_error").innerHTML = "";
+			// });
+
+			// email.addEventListener("keyup", function(e) {
+			// 	if(!_.isEmail(e.target.value)) document.getElementById("email_error").innerHTML = "Sai định dạng email";
+			// 	else document.getElementById("email_error").innerHTML = "";
+			// });
+		</script>
+	</body>
+</html>
