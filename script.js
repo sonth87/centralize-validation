@@ -44,6 +44,7 @@
                 dd/MM/YYYY
 
   Password: Bao gồm cả chữ hoa, chữ thường, số, ký tự đặc biệt và ít nhất 4 kỹ tự
+  CCCD - HC: 9 số với CMND, 12 số với CCCD, 1 ký tự và 7,8 chữ số với Hộ chiếu
 */
 var REGEX = {
   email: /^[a-z][a-z0-9_.]{4,32}@[a-z0-9]{2,}(.[a-z0-9]{2,4}){1,2}$/gi,
@@ -51,6 +52,7 @@ var REGEX = {
   url: /(https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&\/=]*)/g,
   date: /^(?:(?:31(\/|-|\.)(?:0?[13578]|1[02]))\1|(?:(?:29|30)(\/|-|\.)(?:0?[1,3-9]|1[0-2])\2))(?:(?:1[6-9]|[2-9]\d)?\d{2})$|^(?:29(\/|-|\.)0?2\3(?:(?:(?:1[6-9]|[2-9]\d)?(?:0[48]|[2468][048]|[13579][26])|(?:(?:16|[2468][048]|[3579][26])00))))$|^(?:0?[1-9]|1\d|2[0-8])(\/|-|\.)(?:(?:0?[1-9])|(?:1[0-2]))\4(?:(?:1[6-9]|[2-9]\d)?\d{2})$/g,
   password: /(?=(.*[0-9]))(?=.*[\!@#$%^&*()\\[\]{}\-_+=~`|:;"'<>,.\/?])(?=.*[a-z])(?=(.*[A-Z]))(?=(.*)).{4,}/g,
+  cccd_hc: /^(([a-z][0-9]{7,8})|([0-9]{9})|([0-9]{12}))$/gi,
   empty: /^\s*$/,
 };
 
@@ -66,7 +68,7 @@ var REGEX = {
     wrong_format: "%{label} không đúng định dạng",
   };
 
-  var TYPE = ["string", "number", "phone", "email", "url", "date", "password"];
+  var TYPE = ["string", "number", "phone", "email", "url", "date", "password", "cccd_hc"];
 
   var validate = function(formFields, rules) {
     return _.test(formFields, rules);
@@ -139,6 +141,9 @@ var REGEX = {
                 break;
               case "date":
                 formatTest = _.isDate(value, rulesOfField, fieldContent);
+                break;
+              case "cccd_hc":
+                formatTest = _.isCCCDHC(value, rulesOfField, fieldContent);
                 break;
               default:
                 break;
@@ -321,7 +326,7 @@ var REGEX = {
 
     /**
      *  value: value of field
-     *  type: string | number | date
+     *  type: string | number
      */
     format: function(value, rule, field) {
       var regex = _.getRuleValue(rule) || _.getRegexFromRule(rule) || undefined;
@@ -362,6 +367,11 @@ var REGEX = {
 
     isPassword: function(value, rule, field) {
       var _rule = Object.assign(rule || {}, { regex: REGEX.password });
+      return _.validator.format(value, _rule, field);
+    },
+
+    isCCCDHC: function(value, rule, field) {
+      var _rule = Object.assign(rule || {}, { regex: REGEX.cccd_hc });
       return _.validator.format(value, _rule, field);
     },
   });
@@ -425,68 +435,3 @@ var REGEX = {
 
   validate.exposeModule(validate, this);
 }).call(this);
-
-///////////////////////////////////////////////////////////////
-// var field = { name: "", email: "sonth@abc", password: "aA1@" };
-// var rule = {
-//   name: {
-//     rule: {
-//       require: {
-//         value: true,
-//         message: "Trường không được để trống"
-//       },
-//       min: {
-//         value: 5,
-//         // message: "Tên quá ngắn"
-//       },
-//       max: {
-//         value: 15,
-//         message: "Tên quá dài (15)"
-//       },
-//     },
-//     type: "string",
-//     label: "Tên",
-//   },
-//   email: {
-//     type: "email",
-//     rule: {
-//       format: {
-//         message: "Email không đúng định dạng"
-//       }
-//     }
-//   },
-//   phone: {
-//     rule: {
-//       require: true,
-//       length: {
-//         value: 10,
-//         message: "Số điện thoại không hợp lệ"
-//       },
-//       format: {
-//         message: "Số điện thoại không đúng định dạng"
-//       }
-//     },
-//     type: "phone"
-//   },
-//   password: {
-//     type: "password",
-//     rule: {
-//       min: {
-//         value: 8,
-//         message: "Mật khẩu tối thiểu 8 ký tự"
-//       }
-//     }
-//   },
-//   text: {
-//     type: "string",
-//     rule: {
-//       format: {
-//         regex: /[0-9a-zA-Z]/,
-//         message: "Không đúng định dạng"
-//       }
-//     }
-//   }
-// };
-// console.warn(field, rule);
-// var validateForm = validate(field, rule);
-// console.log(validateForm);
