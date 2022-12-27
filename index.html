@@ -61,6 +61,11 @@
       <span id="password_error"></span>
     </div>
     <div>
+      <label for="cccd">CMT/CCCD/HC *</label>
+      <input type="text" id="cccd" placeholder="cmt/cccd/hc" />
+      <span id="cccd_error"></span>
+    </div>
+    <div>
       <label for="amount">Amount (min: 100, max: 200)</label>
       <input type="text" id="amount" placeholder="amount" />
       <span id="amount_error"></span>
@@ -172,6 +177,10 @@
         max: { value: 200 }
       }
     },
+    cccd: {
+    	type: "cccd_hc",
+    	label: "Số CMT/CCCD/HC",
+    }
   };
 
   var phone = document.getElementById("phone");
@@ -179,6 +188,7 @@
   var username = document.getElementById("name");
   var password = document.getElementById("password");
   var amount = document.getElementById("amount");
+  var cccd = document.getElementById("cccd");
 
 
   phone.addEventListener("keyup", function(e) {
@@ -219,6 +229,14 @@
     if (validateForm.hasErrors)
       document.getElementById("amount_error").innerHTML = validateForm.fields.amount.join(", ");
     else document.getElementById("amount_error").innerHTML = "";
+  });
+
+  cccd.addEventListener("keyup", function(e) {
+    var validateForm = validate({ cccd: e.target.value }, config);
+
+    if (validateForm.hasErrors)
+      document.getElementById("cccd_error").innerHTML = validateForm.fields.cccd.join(", ");
+    else document.getElementById("cccd_error").innerHTML = "";
   });
   </script>
 </body>
