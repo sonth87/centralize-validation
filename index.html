@@ -17,6 +17,7 @@
   		font-family: Menlo,Monaco,Consolas,"Courier New",monospace;
   		font-size: 14px;
   		color: #333;
+  		margin-top: 50px;
   	}
   	label {
   		display: block;
@@ -34,6 +35,11 @@
   		border: solid 1px #bcbcbc;
   		border-radius: 4px;
   		font-size: 16px;
+  	}
+  	highlight {
+  		display: block;
+	    background: #ffffd7;
+	    color: #2f4c83;
   	}
   </style>
 </head>
@@ -72,17 +78,21 @@
     </div>
   </div>
   <pre>
-  	How to use
+  	Cách sử dụng
 
   	// Quy tắc validate
+  	<highlight>
   	var validateRule = {
   		// Tên trường
   		name: {
   			label: "Họ và tên", // Không bắt buộc
-  			type: "string", // Không bắt buộc, gồm các kiểu "string" | "number" | "phone" | "email" | "url" | "date" | "password", mặc định là "string"
+  			type: "string", // Không bắt buộc
+  											// Gồm các kiểu "string" | "number" | "phone" | "email" | "url" | "date" | "password"
+  											// Mặc định là "string"
   			rule: {
   				require: { // Không bắt buộc
   					value: true, // true | false
+  											 // Mặc định là false
   					message: "Không được để trống" // Không bắt buộc, thay thế cho message mặc định
   				},
   			}
@@ -99,11 +109,22 @@
 	      }
 	    },
   	}
+  	</highlight>
+
+  	// Form value
+  	<highlight>
+  	var value = {name: "Nguyen Van A", amount: 20};
+  	</highlight>
+
+  	// Gọi hàm validate
+  	<highlight>
+  	var validateForm = validate(value, config);
+  	</highlight>
   </pre>
   <pre>
   	- Các kiểu dữ liệu:
 
-  	email: validate theo email 
+  	email: validate theo email
   					+ default regex: REGEX.email
   					+ default message: "%{label} không đúng định dạng" // label của trường
 
@@ -130,17 +151,22 @@
   					+ default message: "Không được để trống"
 
   	min: quy định giá trị nhỏ nhất với number, hay ngắn nhất với string
-  					+ default message (string): "%{label} phải nhiều hơn %{num} ký tự" // label của trường, num là giá trị truyền vào (min)
-  					+ default message (number): "%{label} phải lớn hơn %{num}" // label của trường, num là giá trị truyền vào (min)
+  					+ default message (string): "%{label} phải nhiều hơn %{num} ký tự" 
+  								// label của trường, num là giá trị truyền vào (min)
+  					+ default message (number): "%{label} phải lớn hơn %{num}" 
+  								// label của trường, num là giá trị truyền vào (min)
 
   	max: quy định giá trị lớn nhất với number, hay dài nhất với string
-  					+ default message (string): "%{label} phải ít hơn %{num} ký tự" // label của trường, num là giá trị truyền vào (max)
-  					+ default message (number): "%{label} phải nhỏ hơn %{num}" // label của trường, num là giá trị truyền vào (max)
+  					+ default message (string): "%{label} phải ít hơn %{num} ký tự" 
+  								// label của trường, num là giá trị truyền vào (max)
+  					+ default message (number): "%{label} phải nhỏ hơn %{num}" 
+  								// label của trường, num là giá trị truyền vào (max)
 
   	length: độ dài cố định với cả string và number,
 
   	format: custom validate theo regex, truyền vào value là 1 regex
-  					+ default message: "%{label} không đúng định dạng" // label của trường
+  					+ default message: "%{label} không đúng định dạng" 
+  								// label của trường
 
   </pre>
   <script>
