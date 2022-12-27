@@ -1,32 +1,226 @@
 <html>
-	<head>
-		<script type="text/javascript" async="" src="script.js"></script>
-	</head>
-	<body>
 
-		<div>
-			<input type="text" id="phone" placeholder="phone" />
-			<span id="phone_error"></span>
-		</div>
-		<br />
-		<div>
-			<input type="text" id="email" placeholder="email" />
-			<span id="email_error"></span>
-		</div>
+<head>
+  <script type="text/javascript" async="" src="script.js"></script>
+  <style>
+    body {
+  		font-family: "Arial";
+  	}
+  	#form {
+  		display: grid;
+  		grid-template-columns: repeat(3, 1fr);
+  		gap: 16px;
+  	}
+  	pre {
+  		background:linear-gradient(180deg,#ccc 0,#ccc 1.2em,#F5F5F5 0);
+  		tab-size: 2;
+  		font-family: Menlo,Monaco,Consolas,"Courier New",monospace;
+  		font-size: 14px;
+  		color: #333;
+  	}
+  	label {
+  		display: block;
+  		margin-bottom: 4px;
+  		font-size: 14px;
+  	}
+  	span {
+  		display: block;
+  		font-size: 14px;
+  		color: red;
+  		margin-top: 4px;
+  	}
+  	input {
+  		padding: 8px 12px;
+  		border: solid 1px #bcbcbc;
+  		border-radius: 4px;
+  		font-size: 16px;
+  	}
+  </style>
+</head>
 
-		<script>
-			var phone = document.getElementById("phone");
-			var email = document.getElementById("email");
+<body>
+  <div id="form">
+    <div>
+      <label for="phone">Name * (min: 5, max: 15)</label>
+      <input type="text" id="name" placeholder="name" />
+      <span id="name_error"></span>
+    </div>
+    <div>
+      <label for="phone">Phone *</label>
+      <input type="text" id="phone" placeholder="phone" />
+      <span id="phone_error"></span>
+    </div>
+    <div>
+      <label for="email">Email</label>
+      <input type="text" id="email" placeholder="email" />
+      <span id="email_error"></span>
+    </div>
+    <div>
+      <label for="password">Password (min: 8, hoa, thường, số, ký tự đb)</label>
+      <input type="text" id="password" placeholder="password" />
+      <span id="password_error"></span>
+    </div>
+    <div>
+      <label for="amount">Amount (min: 100, max: 200)</label>
+      <input type="text" id="amount" placeholder="amount" />
+      <span id="amount_error"></span>
+    </div>
+  </div>
+  <pre>
+  	How to use
 
-			// phone.addEventListener("keyup", function(e) {
-			// 	if(!_.isPhoneNumber(e.target.value)) document.getElementById("phone_error").innerHTML = "Sai định dạng phone";
-			// 	else document.getElementById("phone_error").innerHTML = "";
-			// });
 
-			// email.addEventListener("keyup", function(e) {
-			// 	if(!_.isEmail(e.target.value)) document.getElementById("email_error").innerHTML = "Sai định dạng email";
-			// 	else document.getElementById("email_error").innerHTML = "";
-			// });
-		</script>
-	</body>
+  	// Quy tắc validate
+  	var validateRule = {
+  		// Tên trường
+  		name: {
+  			label: "Họ và tên", // Không bắt buộc
+  			type: "string", // Không bắt buộc, gồm các kiểu "string" | "number" | "phone" | "email" | "url" | "date" | "password", mặc định là "string"
+  			rule: {
+  				require: { // Không bắt buộc
+  					value: true, // true | false
+  					message: "Không được để trống" // Không bắt buộc, thay thế cho message mặc định
+  				},
+  			}
+  		},
+	    amount: {
+	      type: "number",
+	      rule: {
+	        min: {
+	          value: 100
+	        },
+	        max: {
+	        	value: 200
+	        }
+	      }
+	    },
+  	}
+  </pre>
+  <pre>
+  	- Các kiểu dữ liệu:
+  	email: validate theo email 
+  					+ default regex: REGEX.email
+  					+ default message: "%{label} không đúng định dạng" // label của trường
+
+  	phone: validate theo số điện thoại (theo nhà mạng)
+  					+ default regex: REGEX.phone
+  					+ default message: "%{label} không đúng định dạng" // label của trường
+
+  	date: validate ngày tháng năm
+  					+ default regex: REGEX.date // format : dd-MM-YYYY | dd.MM.YYYY | dd/MM/YYYY
+  					+ default message: "%{label} không đúng định dạng" // label của trường
+
+  	url: validate theo url
+  					+ default regex: REGEX.url // format : (http(s)://)(www.)myvbi.vn/
+  					+ default message: "%{label} không đúng định dạng" // label của trường
+
+  	string: validate theo chuỗi
+
+  	number: validate theo số
+  </pre>
+  <pre>
+  	- Các rule:
+  	require: Bắt buộc nhập hay không
+  					+ default message: "Không được để trống"
+
+  	min: quy định giá trị nhỏ nhất với number, hay ngắn nhất với string
+  					+ default message (string): "%{label} phải nhiều hơn %{num} ký tự" // label của trường, num là giá trị truyền vào (min)
+  					+ default message (number): "%{label} phải lớn hơn %{num}" // label của trường, num là giá trị truyền vào (min)
+
+  	max: quy định giá trị lớn nhất với number, hay dài nhất với string
+  					+ default message (string): "%{label} phải ít hơn %{num} ký tự" // label của trường, num là giá trị truyền vào (max)
+  					+ default message (number): "%{label} phải nhỏ hơn %{num}" // label của trường, num là giá trị truyền vào (max)
+
+  	length: độ dài cố định với cả string và number,
+
+  	format: custom validate theo regex, truyền vào value là 1 regex
+  					+ default message: "%{label} không đúng định dạng" // label của trường
+
+  </pre>
+  <script>
+  var config = {
+    name: {
+      rule: {
+        require: { value: true, message: "Trường không được để trống" },
+        min: { value: 5, },
+        max: { value: 15, message: "Tên quá dài (15)" },
+      },
+      label: "Tên",
+    },
+    email: {
+      type: "email",
+      rule: {
+        format: { message: "Email không đúng định dạng" }
+      }
+    },
+    phone: {
+      rule: { require: true, },
+      type: "phone"
+    },
+    password: {
+      type: "password",
+      label: "Mật khẩu",
+      rule: {
+        min: { value: 8, message: "Mật khẩu tối thiểu 8 ký tự" }
+      }
+    },
+    amount: {
+      type: "number",
+      label: "Amount",
+      rule: {
+        min: { value: 100 },
+        max: { value: 200 }
+      }
+    },
+  };
+
+  var phone = document.getElementById("phone");
+  var email = document.getElementById("email");
+  var username = document.getElementById("name");
+  var password = document.getElementById("password");
+  var amount = document.getElementById("amount");
+
+
+  phone.addEventListener("keyup", function(e) {
+    var validateForm = validate({ phone: e.target.value }, config);
+
+    if (validateForm.hasErrors)
+      document.getElementById("phone_error").innerHTML = validateForm.fields.phone.join(", ");
+    else document.getElementById("phone_error").innerHTML = "";
+  });
+
+  email.addEventListener("keyup", function(e) {
+    var validateForm = validate({ email: e.target.value }, config);
+
+    if (validateForm.hasErrors)
+      document.getElementById("email_error").innerHTML = validateForm.fields.email.join(", ");
+    else document.getElementById("email_error").innerHTML = "";
+  });
+
+  username.addEventListener("keyup", function(e) {
+    var validateForm = validate({ name: e.target.value }, config);
+
+    if (validateForm.hasErrors)
+      document.getElementById("name_error").innerHTML = validateForm.fields.name.join(", ");
+    else document.getElementById("name_error").innerHTML = "";
+  });
+
+  password.addEventListener("keyup", function(e) {
+    var validateForm = validate({ password: e.target.value }, config);
+
+    if (validateForm.hasErrors)
+      document.getElementById("password_error").innerHTML = validateForm.fields.password.join(", ");
+    else document.getElementById("password_error").innerHTML = "";
+  });
+
+  amount.addEventListener("keyup", function(e) {
+    var validateForm = validate({ amount: e.target.value }, config);
+
+    if (validateForm.hasErrors)
+      document.getElementById("amount_error").innerHTML = validateForm.fields.amount.join(", ");
+    else document.getElementById("amount_error").innerHTML = "";
+  });
+  </script>
+</body>
+
 </html>
