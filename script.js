@@ -48,11 +48,11 @@
 */
 var REGEX = {
   email: /^[a-z][a-z0-9_.]{4,32}@[a-z0-9]{2,}(.[a-z0-9]{2,4}){1,2}$/gi,
-  phone: /^(0)(3[2-9]|5[6|8|9]|7[0|6-9]|8[0-6|8|9]|9[0-4|6-9])[0-9]{7}$/g,
+  phone: /^(0)(3[2-9]|5[6|8|9]|7[0|6-9]|8[0-9]|9[0-4|6-9])[0-9]{7}$/g,
   url: /(https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&\/=]*)/g,
-  date: /^(?:(?:31(\/|-|\.)(?:0?[13578]|1[02]))\1|(?:(?:29|30)(\/|-|\.)(?:0?[1,3-9]|1[0-2])\2))(?:(?:1[6-9]|[2-9]\d)?\d{2})$|^(?:29(\/|-|\.)0?2\3(?:(?:(?:1[6-9]|[2-9]\d)?(?:0[48]|[2468][048]|[13579][26])|(?:(?:16|[2468][048]|[3579][26])00))))$|^(?:0?[1-9]|1\d|2[0-8])(\/|-|\.)(?:(?:0?[1-9])|(?:1[0-2]))\4(?:(?:1[6-9]|[2-9]\d)?\d{2})$/g,
+  date: /^(?:(?:31(\/|-|\.)(?:0?[13578]|1[02]))\1|(?:(?:29|30)(\/|-|\.)(?:0?[1,3-9]|1[0-2])\2))(?:(?:1[6-9]|[2-9]\d)?\d{2})$|^(?:29(\/|-|\.)0?2\3(?:(?:(?:1[6-9]|[2-9]\d)?(?:0[48]|[2468][048]|[13579][26])|(?:(?:16|[2468][048]|[3579][26])00))))$|^(?:0?[1-9]|1\d|2[0-8])(\/|-|\.)(?:(?:0?[1-9])|(?:1[0-2]))\4(?:(?:1[6-9]|[2-9]\d)?\d{4})$/g,
   password: /(?=(.*[0-9]))(?=.*[\!@#$%^&*()\\[\]{}\-_+=~`|:;"'<>,.\/?])(?=.*[a-z])(?=(.*[A-Z]))(?=(.*)).{4,}/g,
-  cccd_hc: /^(([a-z][0-9]{7,8})|([0-9]{9})|([0-9]{12}))$/gi,
+  cccd_hc: /^(([a-z][0-9]{7,8})|([0-9]{9})|([0-9]{10,12}))$/gi,
   empty: /^\s*$/,
 };
 
@@ -68,7 +68,14 @@ var REGEX = {
     wrong_format: "%{label} không đúng định dạng",
   };
 
-  var TYPE = ["string", "number", "phone", "email", "url", "date", "password", "cccd_hc"];
+  var TYPE = ["string", "number", "phone", "email", "url", "date", "password", "cccd_hc", "age"];
+  var PARAM = {
+    message: "message",
+    regex: "regex",
+    value: "value",
+    toDate: "toDate",
+    type: "type"
+  }
 
   var validate = function(formFields, rules) {
     return _.test(formFields, rules);
@@ -116,11 +123,12 @@ var REGEX = {
           var type = _.getFieldType(rules[fieldname]);
 
           // Field label
-          var label = _.getFieldLabel(rules[fieldname]);
+          var label = _.getParams(rules[fieldname]);
 
           var fieldContent = {
             label: label,
             type: type,
+
           };
 
           var formatTest;
@@ -144,7 +152,6 @@ var REGEX = {
                 break;
               case "cccd_hc":
                 formatTest = _.isCCCDHC(value, rulesOfField, fieldContent);
-                break;
               default:
                 break;
             }
@@ -193,7 +200,7 @@ var REGEX = {
       return testResult;
     },
 
-    // get value from field
+    // get value from field (gia tri nhap)
     getFieldValue: function(formFields, fieldname) {
       if (!_.isObject(formFields) || !_.isString(fieldname)) return undefined;
 
@@ -210,46 +217,13 @@ var REGEX = {
       return "string";
     },
 
-    // get value of rule
-    getRuleCondition: function(rule) {
+    // get params of fields or rules (fields["message" | "regex" | "value"])
+    getParams: function(fields, param) {
       try {
-        return rule.hasOwnProperty("value") ? rule["value"] : undefined;
+        return fields.hasOwnProperty(param) ? fields[param] : undefined;
       } catch (e) {
         return undefined;
       }
-    },
-
-    // get label of field
-    getFieldLabel: function(formFields) {
-      try {
-        return formFields.hasOwnProperty("label") ? formFields["label"] : undefined;
-      } catch (e) {
-        return undefined;
-      }
-    },
-
-    // get Message
-    getMessageFromRule: function(rule) {
-      try {
-        return rule.hasOwnProperty("message") ? rule["message"] : undefined;
-      } catch (e) {
-        return undefined;
-      }
-    },
-
-    // get regex of rule
-    getRegexFromRule: function(rule) {
-      try {
-        return rule.hasOwnProperty("regex") ? rule["regex"] : undefined;
-      } catch (e) {
-        return undefined;
-      }
-    },
-
-    // get rule value
-    getRuleValue: function(rule) {
-      var value = rule.hasOwnProperty("value") ? rule["value"] : undefined;
-      return value;
     },
 
     // render error message
@@ -269,27 +243,30 @@ var REGEX = {
   _.validator = {
     // required field (value isn't empty)
     require: function(value, rule) {
-      if (_.isEmpty(value)) return _.getMessageFromRule(rule) || MESSAGE.empty;
+      if (_.isEmpty(value)) return _.getParams(rule, PARAM.message) || MESSAGE.empty;
       return undefined;
     },
 
     /**
      *  value: value of field
-     *  type: string | number | date
+     *  type: string | number
      */
     min: function(value, rule, field) {
-      var length = _.getRuleValue(rule);
+      var length = _.getParams(rule, PARAM.value);
       if (!length || !_.isInteger(length) || length < 0) return undefined;
 
-      var params = { num: length, label: field.label };
+      var params = { num: length, label: _.getParams(field, "label") };
 
-      if (field.type === "number") {
+      if (field.type === "age") {
+        if (!_.isAgeValid(value, rule, "min"))
+          return _.renderMessage(_.getParams(rule, PARAM.message) || MESSAGE.number_min, params);
+      } else if (field.type === "number") {
         if (!_.isNumber(value) || value < length)
-          return _.renderMessage(_.getMessageFromRule(rule) || MESSAGE.number_min, params);
+          return _.renderMessage(_.getParams(rule, PARAM.message) || MESSAGE.number_min, params);
       } else if (field.type === "date") {
         // Date
       } else if (value && value.length < length)
-        return _.renderMessage(_.getMessageFromRule(rule) || MESSAGE.string_min, params);
+        return _.renderMessage(_.getParams(rule, PARAM.message) || MESSAGE.string_min, params);
 
       return undefined;
     },
@@ -299,29 +276,32 @@ var REGEX = {
      *  type: string | number | date
      */
     max: function(value, rule, field) {
-      var length = _.getRuleValue(rule);
+      var length = _.getParams(rule, PARAM.value);
       if (!length || !_.isInteger(length) || length < 0) return undefined;
 
-      var params = { num: length, label: field.label };
+      var params = { num: length, label: _.getParams(field, "label") };
 
-      if (field.type === "number") {
+      if (field.type === "age") {
+        if (!_.isAgeValid(value, rule, "max"))
+          return _.renderMessage(_.getParams(rule, PARAM.message) || MESSAGE.number_min, params);
+      } else if (field.type === "number") {
         if (!_.isNumber(value) || value > length)
-          return _.renderMessage(_.getMessageFromRule(rule) || MESSAGE.number_max, params);
+          return _.renderMessage(_.getParams(rule, PARAM.message) || MESSAGE.number_max, params);
       } else if (field.type === "date") {
         // Date
       } else if (value && value.length > length)
-        return _.renderMessage(_.getMessageFromRule(rule) || MESSAGE.string_max, params);
+        return _.renderMessage(_.getParams(rule, PARAM.message) || MESSAGE.string_max, params);
       return undefined;
     },
 
     length: function(value, rule, field) {
-      var length = _.getRuleValue(rule);
+      var length = _.getParams(rule, PARAM.value);
       if (!length || !_.isInteger(length) || length < 0) return undefined;
 
-      var params = { num: length, label: field.label };
+      var params = { num: length, label: _.getParams(field, "label") };
 
       if (value && value.length !== length)
-        return _.renderMessage(_.getMessageFromRule(rule) || MESSAGE.wrong_format, params);
+        return _.renderMessage(_.getParams(rule, PARAM.message) || MESSAGE.wrong_format, params);
     },
 
     /**
@@ -329,14 +309,14 @@ var REGEX = {
      *  type: string | number
      */
     format: function(value, rule, field) {
-      var regex = _.getRuleValue(rule) || _.getRegexFromRule(rule) || undefined;
+      var regex = _.getParams(rule, PARAM.value) || _.getParams(rule, PARAM.regex) || undefined;
       if (!_.isString(value) || !regex) return undefined;
 
-      var params = { label: field.label };
+      var params = { label: _.getParams(field, "label") };
 
       var reg = new RegExp(regex);
       if (value && !reg.test(value))
-        return _.renderMessage(_.getMessageFromRule(rule) || MESSAGE.wrong_format, params);
+        return _.renderMessage(_.getParams(rule, PARAM.message) || MESSAGE.wrong_format, params);
 
       return undefined;
     }
@@ -374,13 +354,40 @@ var REGEX = {
       var _rule = Object.assign(rule || {}, { regex: REGEX.cccd_hc });
       return _.validator.format(value, _rule, field);
     },
+
+    /**
+     * Tính tuổi hợp lệ
+     * value: input value
+     * type: "min" | "max"
+     */
+    isAgeValid: function(value, rule, type) {
+      // Get target date to check age
+      const dayCompare = _.getParams(rule, PARAM.toDate);
+
+      // Expected age
+      const expect_age = _.getParams(rule, PARAM.value);
+
+      // get type (d: day, m: month, y: year)
+      const checkType = _.getParams(rule, PARAM.type);
+      var actual_age = _.getAgeByDob(value, dayCompare, checkType);
+
+      console.log(actual_age, expect_age, checkType, dayCompare);
+      if (actual_age >= 0) {
+        if (type === "min")
+          return expect_age <= actual_age;
+        else if (type === "max")
+          return expect_age >= actual_age;
+      }
+
+      return false;
+    },
   });
 
 
   // Check object is a valid type
   _.extend(validate, {
     isRequired: function(rule) {
-      return rule && typeof rule["require"] !== "undefined" ? _.getRuleCondition(rule["require"]) || false : false;
+      return rule && typeof rule["require"] !== "undefined" ? _.getParams(rule["require"], "value") || false : false;
     },
 
     isObject: function(obj) {
@@ -407,8 +414,9 @@ var REGEX = {
       return typeof value === 'boolean';
     },
 
-    isDate: function(value) {
-      return value instanceof Date;
+    isDateTime: function(value) {
+      var reg = new RegExp(REGEX.date);
+      return value instanceof Date || reg.test(value);
     },
 
     isEmpty: function(value) {
@@ -427,11 +435,51 @@ var REGEX = {
       if (this.isArray(value)) return value.length === 0;
 
       // Dates have no attributes but aren't empty
-      if (this.isDate(value)) return false;
+      if (this.isDateTime(value)) return false;
 
       return false;
     },
   });
+
+
+  /**
+   * Lấy số tuổi theo ngày sinh và ngày hiệu lực theo ngày, tháng, năm
+   * @param {string} day string: date Ngày sinh
+   * @param {string} dayCompare string: date Ngày hiệu lực ( default = today )
+   * @param {'d' | 'm' | 'y'} checkType string: d, m, y
+   * @returns number of d|m|y
+   */
+  _.getAgeByDob = function(day, dayCompare, checkType) {
+    var reg = new RegExp(REGEX.date);
+    if (!day || !reg.test(day)) return null;
+
+    checkType = checkType ? checkType : "y";
+
+    var today = new Date();
+    var datearray = day.split("/");
+    var newdate = datearray[1] + '/' + datearray[0] + '/' + datearray[2];
+    var newDayCompare = dayCompare ? dayCompare.split("/") : null;
+    var dob = new Date(newdate);
+    var ngayCheck = dayCompare ? new Date(newDayCompare[1] + '/' + newDayCompare[0] + '/' + newDayCompare[2]) : today;
+
+    if (checkType.toLowerCase() == 'd') {
+      var result = Math.floor((ngayCheck - dob) / (24 * 60 * 60 * 1000));
+      return isNaN(result) ? null : result;
+    }
+    if (checkType.toLowerCase() == 'm') {
+      var months;
+      months = (ngayCheck.getFullYear() - dob.getFullYear()) * 12;
+      months -= dob.getMonth();
+      months += ngayCheck.getMonth();
+      return isNaN(months) ? null : months;
+    }
+    if (checkType.toLowerCase() == 'y') {
+      var result = Math.floor((ngayCheck - dob) / (365.25 * 24 * 60 * 60 * 1000));
+      return isNaN(result) ? null : result;
+    }
+
+    return 0;
+  };
 
   validate.exposeModule(validate, this);
 }).call(this);
