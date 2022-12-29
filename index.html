@@ -17,7 +17,7 @@
   		font-family: Menlo,Monaco,Consolas,"Courier New",monospace;
   		font-size: 14px;
   		color: #333;
-  		margin-top: 50px;
+  		margin-top: 20px;
   	}
   	label {
   		display: block;
@@ -30,18 +30,58 @@
   		color: red;
   		margin-top: 4px;
   	}
-  	input {
+  	input, button {
   		padding: 8px 12px;
   		border: solid 1px #bcbcbc;
   		border-radius: 4px;
   		font-size: 16px;
+  		color: #333;
+  	}
+  	button {
+  		font-size: 14px;
   	}
   	highlight {
   		display: block;
 	    background: #ffffd7;
 	    color: #2f4c83;
   	}
+  	.tab {
+  		margin-top: 60px;
+  	}
+  	.hidden {
+  		display: none;
+  	}
   </style>
+  <script>
+    ////// Tab handler
+
+  function openTab(tab) {
+    var elms = document.getElementsByClassName("intro");
+    for(var elm = 0; elm < elms.length; elm++) {
+    	elms[elm].classList.add("hidden");
+    }
+    switch (tab) {
+      case 1:
+        document.getElementsByClassName("tab_1")[0].classList.remove("hidden");
+        break;
+      case 2:
+        document.getElementsByClassName("tab_2")[0].classList.remove("hidden");
+        break;
+      case 3:
+        document.getElementsByClassName("tab_3")[0].classList.remove("hidden");
+        break;
+      case 4:
+        document.getElementsByClassName("tab_4")[0].classList.remove("hidden");
+        break;
+      default:
+        document.getElementsByClassName("tab_1")[0].classList.remove("hidden");
+        break;
+
+    }
+  }
+
+  ////// End Tab handler
+  </script>
 </head>
 
 <body>
@@ -76,8 +116,19 @@
       <input type="text" id="amount" placeholder="amount" />
       <span id="amount_error"></span>
     </div>
+    <div>
+      <label for="tuoi">Age (min: 16 ngày, max: 60 tuổi)</label>
+      <input type="text" id="tuoi" placeholder="dd/MM/YYYY" />
+      <span id="tuoi_error"></span>
+    </div>
   </div>
-  <pre>
+  <div class="tab">
+    <button onclick="openTab(1)">Sử dụng</button>
+    <button onclick="openTab(2)">Kiểu dữ liệu</button>
+    <button onclick="openTab(3)">Quy tắc</button>
+    <button onclick="openTab(4)">Các hàm gọi riêng</button>
+  </div>
+  <pre class="intro tab_1">
   	Cách sử dụng
 
   	// Quy tắc validate
@@ -121,7 +172,7 @@
   	var validateForm = validate(value, config);
   	</highlight>
   </pre>
-  <pre>
+  <pre class="intro tab_2 hidden">
   	- Các kiểu dữ liệu:
 
   	email: validate theo email
@@ -140,11 +191,21 @@
   					+ default regex: REGEX.url // format : (http(s)://)(www.)myvbi.vn/
   					+ default message: "%{label} không đúng định dạng" // label của trường
 
+  	age: validate theo tuổi. Giá trị truyền yêu cầu :
+  					+ min: số tuổi nhỏ nhất cho phép
+  					+ max: số tuổi lớn nhất cho phép
+  				 	{ 
+  				 		value: 16, // Giá trị tuổi
+  				 		type: "d", // Tính theo đơn vị:  d: ngày / m: tháng / y: năm	 -default: y
+  				 		toDate: "", // Mốc ngày để tính tuổi (vd: ngày hiệu lực, ngày hiện tại) -default: ngày hiện tại
+  				 		message: "Người được bảo hiểm phải trên 16 ngày tuổi" // Thông báo lỗi -default: lấy theo message min, max của number
+  				 	},
+
   	string: validate theo chuỗi
 
   	number: validate theo số
   </pre>
-  <pre>
+  <pre class="intro tab_3 hidden">
   	- Các rule:
 
   	require: Bắt buộc nhập hay không
@@ -167,6 +228,37 @@
   	format: custom validate theo regex, truyền vào value là 1 regex
   					+ default message: "%{label} không đúng định dạng" 
   								// label của trường
+
+  </pre>
+  <pre class="intro tab_4 hidden">
+  	Các hàm gọi riêng
+
+  	<highlight>
+  	- Lấy regex
+  	</highlight>
+  		REGEX.email  		// regex cho email
+  		REGEX.phone  		// regex cho phone ( theo nhà mạng )
+  		REGEX.url 			// regex cho url
+  		REGEX.date 			// regex cho date ( format: dd-MM-YYYY | dd.MM.YYYY | dd/MM/YYYY )
+  		REGEX.password 	// regex cho password ( phải có chữ thường, chữ hoa, số và ký tự đặc biệt )
+  		REGEX.cccd_hc 	// regex cho số CMT, CCCD, Hộ chiếu
+
+  	<highlight>
+  	- Tính số tuổi
+  	</highlight>
+  		validate.getAgeByDob(inputDate, compareDate, type);
+
+  			+ inputDate: ngày tháng năm sinh
+  			+ compareDate: ngày hiệu lưc, ngày hiện tại, ... mặc định là ngày hiện tại
+  			+ type: "d" | "m" | "y" lấy số tuổi theo ngày | tháng | năm. Mặc định: "y"
+
+  		vd: Tính số ngày tuổi của người có ngày sinh 20/12/2022 so với thời điểm 29/12/2022
+  					validate.getAgeByDob("20/12/2022", "29/12/2022", "d");
+  					// Kết quả: 9
+
+  				Tính số năm tuổi của người có ngày sinh 28/09/1987 so với ngày hiện tại
+  					validate.getAgeByDob("28/09/1987");
+  					// Kết quả: 35
 
   </pre>
   <script>
@@ -205,8 +297,16 @@
       }
     },
     cccd: {
-    	type: "cccd_hc",
-    	label: "Số CMT/CCCD/HC",
+      type: "cccd_hc",
+      label: "Số CMT/CCCD/HC",
+    },
+    tuoi: {
+      type: "age",
+      label: "Tuổi",
+      rule: {
+        min: { value: 16, type: "d", toDate: "", message: "Người được bảo hiểm phải trên 16 ngày tuổi" },
+        max: { value: 60, type: "y", toDate: "", message: "Người được bảo hiểm không quá 60 tuổi" }
+      }
     }
   };
 
@@ -216,7 +316,7 @@
   var password = document.getElementById("password");
   var amount = document.getElementById("amount");
   var cccd = document.getElementById("cccd");
-
+  var tuoi = document.getElementById("tuoi");
 
   phone.addEventListener("keyup", function(e) {
     var validateForm = validate({ phone: e.target.value }, config);
@@ -264,6 +364,14 @@
     if (validateForm.hasErrors)
       document.getElementById("cccd_error").innerHTML = validateForm.fields.cccd.join(", ");
     else document.getElementById("cccd_error").innerHTML = "";
+  });
+
+  tuoi.addEventListener("keyup", function(e) {
+    var validateForm = validate({ tuoi: e.target.value }, config);
+
+    if (validateForm.hasErrors)
+      document.getElementById("tuoi_error").innerHTML = validateForm.fields.tuoi.join(", ");
+    else document.getElementById("tuoi_error").innerHTML = "";
   });
   </script>
 </body>
